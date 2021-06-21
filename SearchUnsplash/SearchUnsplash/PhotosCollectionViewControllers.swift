@@ -9,6 +9,9 @@ import UIKit
 
 class PhotosCollectionViewControllers: UICollectionViewController {
     
+    let networkDataFetcher = NetworkDataFetcher()
+    private var timer: Timer?
+    
     private lazy var addBarButtonItem: UIBarButtonItem = {
         return UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.add, target: self, action: #selector(addBarButtonTapped))
     }()
@@ -17,7 +20,6 @@ class PhotosCollectionViewControllers: UICollectionViewController {
         return UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.action, target: self, action: #selector(actionBarButtonTapped))
     }()
     
-    let networkService = NetworkService()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -82,8 +84,12 @@ extension PhotosCollectionViewControllers: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         print(searchText)
         
-        networkService.request(searchTerm: searchText) { _, _ in
-            print("123")
-        }
+        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { _ in
+            self.networkDataFetcher.fetchImages(searchTerm: searchText) { searchResult in
+                searchResult?.results.map({ photo in
+                    print(photo.urls["small"])
+                })
+            }
+        })
     }
 }
