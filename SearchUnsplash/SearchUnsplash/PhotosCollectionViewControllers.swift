@@ -17,6 +17,8 @@ class PhotosCollectionViewControllers: UICollectionViewController {
         return UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.action, target: self, action: #selector(actionBarButtonTapped))
     }()
     
+    let networkService = NetworkService()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         collectionView.backgroundColor = .orange
@@ -79,5 +81,9 @@ class PhotosCollectionViewControllers: UICollectionViewController {
 extension PhotosCollectionViewControllers: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         print(searchText)
+        
+        networkService.request(searchTerm: searchText) { _, _ in
+            print("123")
+        }
     }
 }
