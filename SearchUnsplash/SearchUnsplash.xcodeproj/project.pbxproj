@@ -10,6 +10,7 @@
 		A6377BF8267D1C98009599FF /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377BF7267D1C98009599FF /* NetworkService.swift */; };
 		A6377BFB26810D8B009599FF /* NetworkDataFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377BFA26810D8B009599FF /* NetworkDataFetcher.swift */; };
 		A6377BFD26810E72009599FF /* SearchResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377BFC26810E72009599FF /* SearchResult.swift */; };
+		A6377C0026822175009599FF /* PhotosCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377BFF26822175009599FF /* PhotosCell.swift */; };
 		A6940F7626668B82004B3A19 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6940F7526668B82004B3A19 /* AppDelegate.swift */; };
 		A6940F7826668B82004B3A19 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6940F7726668B82004B3A19 /* SceneDelegate.swift */; };
 		A6940F7A26668B82004B3A19 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6940F7926668B82004B3A19 /* ViewController.swift */; };
@@ -24,6 +25,7 @@
 		A6377BF7267D1C98009599FF /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 		A6377BFA26810D8B009599FF /* NetworkDataFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDataFetcher.swift; sourceTree = "<group>"; };
 		A6377BFC26810E72009599FF /* SearchResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResult.swift; sourceTree = "<group>"; };
+		A6377BFF26822175009599FF /* PhotosCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotosCell.swift; sourceTree = "<group>"; };
 		A6940F7226668B82004B3A19 /* SearchUnsplash.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SearchUnsplash.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6940F7526668B82004B3A19 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A6940F7726668B82004B3A19 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -89,6 +91,7 @@
 				A6377BFE26810E8C009599FF /* Models */,
 				A6940F8926668DF1004B3A19 /* MainTabBarController.swift */,
 				A6940F8B26669232004B3A19 /* PhotosCollectionViewControllers.swift */,
+				A6377BFF26822175009599FF /* PhotosCell.swift */,
 				A6940F7926668B82004B3A19 /* ViewController.swift */,
 				A6940F7B26668B82004B3A19 /* Main.storyboard */,
 				A6940F7E26668B86004B3A19 /* Assets.xcassets */,
@@ -176,6 +179,7 @@
 				A6940F8A26668DF1004B3A19 /* MainTabBarController.swift in Sources */,
 				A6377BF8267D1C98009599FF /* NetworkService.swift in Sources */,
 				A6940F7826668B82004B3A19 /* SceneDelegate.swift in Sources */,
+				A6377C0026822175009599FF /* PhotosCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
