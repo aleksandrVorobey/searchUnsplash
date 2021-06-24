@@ -17,6 +17,8 @@ class PhotosCollectionViewControllers: UICollectionViewController {
     
     private var photos = [UnsplashPhoto]()
     
+    private var selectedImages = [UIImage]()
+    
     private lazy var addBarButtonItem: UIBarButtonItem = {
         return UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.add, target: self, action: #selector(addBarButtonTapped))
     }()
@@ -24,6 +26,10 @@ class PhotosCollectionViewControllers: UICollectionViewController {
     private lazy var actionBarButtonItem: UIBarButtonItem = {
         return UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.action, target: self, action: #selector(actionBarButtonTapped))
     }()
+    
+    private var numberOfSelectedPhotos: Int {
+        return collectionView.indexPathsForSelectedItems?.count ?? 0
+    }
     
     
     override func viewDidLoad() {
@@ -33,6 +39,18 @@ class PhotosCollectionViewControllers: UICollectionViewController {
         setupCollectionView()
         setupNavigationBar()
         setupSearchBar()
+        updateNavButtonState()
+    }
+    
+    private func updateNavButtonState() {
+        addBarButtonItem.isEnabled = numberOfSelectedPhotos > 0
+        actionBarButtonItem.isEnabled = numberOfSelectedPhotos > 0
+    }
+    
+    private func refresh() {
+        self.selectedImages.removeAll()
+        self.collectionView.selectItem(at: nil, animated: true, scrollPosition: [])
+        updateNavButtonState()
     }
     
     // MARK: - NavigationBarButtons
@@ -40,8 +58,18 @@ class PhotosCollectionViewControllers: UICollectionViewController {
         print(#function)
     }
     
-    @objc func actionBarButtonTapped() {
+    @objc func actionBarButtonTapped(sender: UIBarButtonItem) {
         print(#function)
+        
+        let shareController = UIActivityViewController(activityItems: selectedImages, applicationActivities: nil)
+        shareController.completionWithItemsHandler = { _, bool, _, _ in
+            if bool {
+                self.refresh()
+            }
+        }
+        shareController.popoverPresentationController?.barButtonItem = sender
+        shareController.popoverPresentationController?.permittedArrowDirections = .any
+        present(shareController, animated: true, completion: nil)
     }
     
     
@@ -70,6 +98,7 @@ class PhotosCollectionViewControllers: UICollectionViewController {
         
         collectionView.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         collectionView.contentInsetAdjustmentBehavior = .automatic
+        collectionView.allowsMultipleSelection = true
         collectionView.backgroundColor = .lightGray
     }
     
@@ -86,6 +115,23 @@ class PhotosCollectionViewControllers: UICollectionViewController {
         cell.unsplashPhoto = unsplashPhoto
         return cell
     }
+    
+    override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        updateNavButtonState()
+        let cell = collectionView.cellForItem(at: indexPath) as! PhotosCell
+        guard let image = cell.photoImageView.image else { return }
+        selectedImages.append(image)
+        
+    }
+    
+    override func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        updateNavButtonState()
+        let cell = collectionView.cellForItem(at: indexPath) as! PhotosCell
+        guard let image = cell.photoImageView.image else { return }
+        if let index = selectedImages.firstIndex(of: image) {
+            selectedImages.remove(at: index)
+        }
+    }
 }
 
 // MARK: - UISearchBarDelegate
@@ -94,11 +140,13 @@ extension PhotosCollectionViewControllers: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         print(searchText)
         
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false, block: { _ in
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.9, repeats: false, block: { _ in
             self.networkDataFetcher.fetchImages(searchTerm: searchText) { [weak self] searchResult in
                 guard let fetchedPhotos = searchResult else { return }
                 self?.photos = fetchedPhotos.results
                 self?.collectionView.reloadData()
+                self?.refresh()
             }
         })
     }

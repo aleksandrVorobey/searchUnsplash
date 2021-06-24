@@ -19,7 +19,7 @@ class PhotosCell: UICollectionViewCell {
         return imageView
     }()
     
-    private let photoImageView: UIImageView = {
+     let photoImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.backgroundColor = .brown
