@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SDWebImage
 
 class PhotosCell: UICollectionViewCell {
     static let reuseId = "PhotosCell"
@@ -25,6 +26,14 @@ class PhotosCell: UICollectionViewCell {
         imageView.contentMode = .scaleAspectFill
         return imageView
     }()
+    
+    var unsplashPhoto: UnsplashPhoto! {
+        didSet {
+            let photoURL = unsplashPhoto.urls["regular"]
+            guard let imageUrl = photoURL, let url = URL(string: imageUrl) else { return }
+            photoImageView.sd_setImage(with: url, completed: nil)
+        }
+    }
     
     override func prepareForReuse() {
         super.prepareForReuse()

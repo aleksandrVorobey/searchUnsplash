@@ -12,6 +12,11 @@ class PhotosCollectionViewControllers: UICollectionViewController {
     let networkDataFetcher = NetworkDataFetcher()
     private var timer: Timer?
     
+    private let itemsPerRow: CGFloat = 2
+    private let sectionInserts = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+    
+    private var photos = [UnsplashPhoto]()
+    
     private lazy var addBarButtonItem: UIBarButtonItem = {
         return UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.add, target: self, action: #selector(addBarButtonTapped))
     }()
@@ -23,7 +28,7 @@ class PhotosCollectionViewControllers: UICollectionViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        collectionView.backgroundColor = .orange
+        
         
         setupCollectionView()
         setupNavigationBar()
@@ -61,19 +66,24 @@ class PhotosCollectionViewControllers: UICollectionViewController {
     }
     
     private func setupCollectionView() {
-        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "CellId")
+        collectionView.register(PhotosCell.self, forCellWithReuseIdentifier: PhotosCell.reuseId)
+        
+        collectionView.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        collectionView.contentInsetAdjustmentBehavior = .automatic
+        collectionView.backgroundColor = .lightGray
     }
     
     
     // MARK: - UICollectionViewDataSource, UICollectionViewDelegate
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 5
+        return photos.count
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CellId", for: indexPath)
-        cell.backgroundColor = .red
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotosCell.reuseId, for: indexPath) as! PhotosCell
+        let unsplashPhoto = photos[indexPath.item]
+        cell.unsplashPhoto = unsplashPhoto
         return cell
     }
 }
@@ -84,12 +94,31 @@ extension PhotosCollectionViewControllers: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         print(searchText)
         
-        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { _ in
-            self.networkDataFetcher.fetchImages(searchTerm: searchText) { searchResult in
-                searchResult?.results.map({ photo in
-                    print(photo.urls["small"])
-                })
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false, block: { _ in
+            self.networkDataFetcher.fetchImages(searchTerm: searchText) { [weak self] searchResult in
+                guard let fetchedPhotos = searchResult else { return }
+                self?.photos = fetchedPhotos.results
+                self?.collectionView.reloadData()
             }
         })
+    }
+}
+// MARK: - UICollectionViewDelegateFlowLayout
+extension PhotosCollectionViewControllers: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let photo = photos[indexPath.item]
+        let paddingSpace = sectionInserts.left * (itemsPerRow + 1)
+        let availableWidth = view.frame.width - paddingSpace
+        let widthPerItem = availableWidth / itemsPerRow
+        let height = CGFloat(photo.height) * widthPerItem / CGFloat(photo.width)
+        return CGSize(width: widthPerItem, height: height)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return sectionInserts
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return sectionInserts.left
     }
 }
