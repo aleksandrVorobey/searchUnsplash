@@ -10,13 +10,13 @@ import UIKit
 class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        //view.backgroundColor = .green
-        
+                
         let photosVC = PhotosCollectionViewControllers(collectionViewLayout: UICollectionViewFlowLayout())
+        
+        let likesVC = LikesCollectionViewController(collectionViewLayout: UICollectionViewFlowLayout())
 
         viewControllers = [generateNavController(rootViewController: photosVC, title: "Photos", image: UIImage(systemName: "photo")!),
-                           generateNavController(rootViewController: ViewController(), title: "Favourites", image: UIImage(systemName: "heart.fill")!)]
+                           generateNavController(rootViewController: likesVC, title: "Favourites", image: UIImage(systemName: "heart.fill")!)]
     }
     
     private func generateNavController(rootViewController: UIViewController, title: String, image: UIImage) -> UIViewController {

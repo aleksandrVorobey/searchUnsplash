@@ -12,12 +12,12 @@ class PhotosCollectionViewControllers: UICollectionViewController {
     let networkDataFetcher = NetworkDataFetcher()
     private var timer: Timer?
     
-    private let itemsPerRow: CGFloat = 2
-    private let sectionInserts = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
-    
     private var photos = [UnsplashPhoto]()
     
     private var selectedImages = [UIImage]()
+    
+    private let itemsPerRow: CGFloat = 2
+    private let sectionInserts = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
     
     private lazy var addBarButtonItem: UIBarButtonItem = {
         return UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.add, target: self, action: #selector(addBarButtonTapped))
@@ -31,15 +31,31 @@ class PhotosCollectionViewControllers: UICollectionViewController {
         return collectionView.indexPathsForSelectedItems?.count ?? 0
     }
     
+    private let enterSearchTermLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Please enter search term above..."
+        
+        label.textAlignment = .center
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let spinner: UIActivityIndicatorView = {
+        let spinner = UIActivityIndicatorView(style: .medium)
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        return spinner
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         
-        setupCollectionView()
         setupNavigationBar()
+        setupCollectionView()
         setupSearchBar()
-        updateNavButtonState()
+        setupEnterLabel()
+        setupSpinner()
     }
     
     private func updateNavButtonState() {
@@ -53,10 +69,33 @@ class PhotosCollectionViewControllers: UICollectionViewController {
         updateNavButtonState()
     }
     
-    // MARK: - NavigationBarButtons
+    // MARK: - NavigationItems action
     @objc func addBarButtonTapped() {
         print(#function)
+        let selectedPhotos = collectionView.indexPathsForSelectedItems?.reduce([], { (photo, indePath) -> [UnsplashPhoto] in
+            var mutablePhoto = photo
+            let photo = photos[indePath.item]
+            mutablePhoto.append(photo)
+            return mutablePhoto
+        })
+        let alertController = UIAlertController(title: "", message: "\(selectedPhotos!.count) фото будут добавлены в альбом", preferredStyle: .alert)
+        let add = UIAlertAction(title: "Добавить", style: .default) { (action) in
+            let tabbar = self.tabBarController as! MainTabBarController
+            let navVC = tabbar.viewControllers?[1] as! UINavigationController
+            let likesVC = navVC.topViewController as! LikesCollectionViewController
+    
+            likesVC.photos.append(contentsOf: selectedPhotos ?? [])
+            likesVC.collectionView.reloadData()
+            
+            self.refresh()
+        }
+        let cancel = UIAlertAction(title: "Отменить", style: .cancel) { (action) in
+        }
+        alertController.addAction(add)
+        alertController.addAction(cancel)
+        present(alertController, animated: true)
     }
+    
     
     @objc func actionBarButtonTapped(sender: UIBarButtonItem) {
         print(#function)
@@ -74,6 +113,26 @@ class PhotosCollectionViewControllers: UICollectionViewController {
     
     
     // MARK: - Setup UI Elements
+    private func setupCollectionView() {
+        collectionView.register(PhotosCell.self, forCellWithReuseIdentifier: PhotosCell.reuseId)
+        
+        collectionView.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        collectionView.contentInsetAdjustmentBehavior = .automatic
+        collectionView.allowsMultipleSelection = true
+        collectionView.backgroundColor = .lightGray
+    }
+    
+    private func setupEnterLabel() {
+        collectionView.addSubview(enterSearchTermLabel)
+        enterSearchTermLabel.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor).isActive = true
+        enterSearchTermLabel.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: 50).isActive = true
+    }
+    
+    private func setupSpinner() {
+        view.addSubview(spinner)
+        spinner.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor).isActive = true
+        spinner.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor).isActive = true
+    }
     
     private func setupNavigationBar() {
         let titleLabel = UILabel()
@@ -82,6 +141,9 @@ class PhotosCollectionViewControllers: UICollectionViewController {
         titleLabel.textColor = .darkGray
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
         navigationItem.rightBarButtonItems = [addBarButtonItem, actionBarButtonItem]
+        navigationController?.hidesBarsOnSwipe = true
+        actionBarButtonItem.isEnabled = false
+        addBarButtonItem.isEnabled = false
     }
     
     private func setupSearchBar() {
@@ -93,19 +155,10 @@ class PhotosCollectionViewControllers: UICollectionViewController {
         searchController.searchBar.delegate = self
     }
     
-    private func setupCollectionView() {
-        collectionView.register(PhotosCell.self, forCellWithReuseIdentifier: PhotosCell.reuseId)
-        
-        collectionView.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        collectionView.contentInsetAdjustmentBehavior = .automatic
-        collectionView.allowsMultipleSelection = true
-        collectionView.backgroundColor = .lightGray
-    }
-    
-    
     // MARK: - UICollectionViewDataSource, UICollectionViewDelegate
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        enterSearchTermLabel.isHidden = photos.count != 0
         return photos.count
     }
     
@@ -139,11 +192,12 @@ class PhotosCollectionViewControllers: UICollectionViewController {
 extension PhotosCollectionViewControllers: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         print(searchText)
-        
+        self.spinner.startAnimating()
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 0.9, repeats: false, block: { _ in
             self.networkDataFetcher.fetchImages(searchTerm: searchText) { [weak self] searchResult in
                 guard let fetchedPhotos = searchResult else { return }
+                self?.spinner.stopAnimating()
                 self?.photos = fetchedPhotos.results
                 self?.collectionView.reloadData()
                 self?.refresh()
@@ -152,6 +206,7 @@ extension PhotosCollectionViewControllers: UISearchBarDelegate {
     }
 }
 // MARK: - UICollectionViewDelegateFlowLayout
+
 extension PhotosCollectionViewControllers: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let photo = photos[indexPath.item]
